@@ -8,7 +8,7 @@ declare global {
   namespace Cloudflare {
     export interface UniversalSSLSettings {
       enabled: boolean,
-      certificate_authority: 'lets_encrypt' | 'google' | 'digicert'
+      certificate_authority: 'lets_encrypt' | 'google' | 'digicert' | 'ssl_com'
     }
   }
 }

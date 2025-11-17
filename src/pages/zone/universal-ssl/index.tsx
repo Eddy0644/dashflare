@@ -58,7 +58,8 @@ export default function UniversalSSLPage() {
                   : [
                     { value: 'lets_encrypt', label: 'Let\'s Encrypt' },
                     { value: 'google', label: 'Google GTS' },
-                    { value: 'digicert', label: 'DigiCert (Deprecated)', disabled: true }
+                    { value: 'digicert', label: 'DigiCert (Deprecated)', disabled: true },
+                    { value: 'ssl_com', label: 'SSL.com (ip6.arpa and long domain support)' }
                   ]
               }
               disabled={shouldDisableInput}
