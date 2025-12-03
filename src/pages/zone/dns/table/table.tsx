@@ -83,25 +83,30 @@ interface ActionCellProps {
   record: Cloudflare.DNSRecord
 }
 
-const ActionCell = memo(({ record }: ActionCellProps) => (
-  <Group align="center" spacing={0} noWrap>
-    <Button
-      compact
-      variant="subtle"
-      onClick={useCallback(() => openEditDNSRecordModal(record), [record])}
-    >
-      Edit
-    </Button>
-    <Button
-      compact
-      variant="subtle"
-      color="red"
-      onClick={useCallback(() => openDeleteDNSRecordModal(record.id, record.name), [record])}
-    >
-      Delete
-    </Button>
-  </Group>
-));
+const ActionCell = memo(({ record }: ActionCellProps) => {
+  const isReadOnly = record.meta?.read_only === true;
+
+  return (
+    <Group align="center" spacing={0} noWrap>
+      <Button
+        compact
+        variant="subtle"
+        disabled={isReadOnly}
+        onClick={useCallback(() => openEditDNSRecordModal(record), [record])}
+      >
+        Edit
+      </Button>
+      <Button
+        compact
+        variant="subtle"
+        color="red"
+        onClick={useCallback(() => openDeleteDNSRecordModal(record.id, record.name), [record])}
+      >
+        Delete
+      </Button>
+    </Group>
+  );
+});
 
 const columns = [
   columnHelper.accessor('proxied', {
@@ -129,6 +134,10 @@ const columns = [
   columnHelper.accessor('type', {
     header: 'Type',
     cell(props) {
+      const meta = props.row.original.meta;
+      if (meta?.origin_worker_id) {
+        return 'Worker';
+      }
       return props.getValue();
     },
     size: 48,
@@ -138,6 +147,10 @@ const columns = [
   columnHelper.accessor('content', {
     header: 'Value',
     cell(props) {
+      const meta = props.row.original.meta;
+      if (meta?.origin_worker_id) {
+        return <Text c="dimmed">-</Text>;
+      }
       return <ValueCell value={props.getValue()} />;
     },
     size: 320,
