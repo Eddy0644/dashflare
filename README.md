@@ -52,8 +52,8 @@ pnpm dev # pnpm build
 ### GitHub Pages
 
 1. Fork this repo
-2. Enable GitHub Pages in repo settings (Source: GitHub Actions)
-3. (Optional) Set `CLOUDFLARE_API_ENDPOINT` in repo secrets if using custom API proxy
+2. Enable GitHub Actions & GitHub Pages in repo settings (The latter's source: GitHub Actions)
+3. Set `CLOUDFLARE_API_ENDPOINT` in repo secrets to specify an API proxy address ending with '/' (proxy target: api.cloudflare.com)
 4. Push to `master` branch to trigger deployment
 
 > **Note:** Must deploy to root path (`username.github.io` or custom domain root). Subpath deployment (e.g. `/dashflare`) will break static resource loading.
