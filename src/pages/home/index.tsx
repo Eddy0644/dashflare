@@ -58,6 +58,15 @@ function ZoneList() {
 
   const [searchQuery, handleCommitSearchQuery, searchInputRef] = useUncontrolled('');
   const { data, error, isLoading } = useCloudflareZoneList(pagination.pageIndex, pagination.pageSize, searchQuery);
+  const { addPinnedDomain } = usePinnedDomainsActions();
+
+  const handlePinAll = useCallback(() => {
+    if (data?.result) {
+      data.result.forEach(zone => {
+        addPinnedDomain({ zoneId: zone.id, zoneName: zone.name });
+      });
+    }
+  }, [data, addPinnedDomain]);
 
   if (isLoading && !data) return <ZoneListLoading />;
   if (error) {
@@ -87,6 +96,9 @@ function ZoneList() {
             }
           />
           <Button type="submit">Search</Button>
+          <Button variant="default" onClick={handlePinAll} leftIcon={<IconPin size={14} />}>
+            Pin All
+          </Button>
         </Group>
       </form>
 

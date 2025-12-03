@@ -134,7 +134,7 @@ const PinnedDomainsSection = memo(() => {
   }
 
   return (
-    <Navbar.Section p="md" sx={theme => ({ borderTop: `${rem(1)} solid ${theme.colors.gray[2]}` })}>
+    <Navbar.Section p="md" pb="xl" sx={theme => ({ borderTop: `${rem(1)} solid ${theme.colors.gray[2]}` })}>
       <Group spacing="xs" mb="xs">
         <IconPin size={rem(14)} />
         <Text size="sm" fw={600} c="dimmed">Pinned Domains</Text>

@@ -20,9 +20,9 @@ export const IconCloudflareWorkers = memo((props: React.JSX.IntrinsicElements['s
 ));
 
 export const IconCloudflareR2 = memo((props: React.JSX.IntrinsicElements['svg']) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-    <text x="12" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" fill="currentColor">R2</text>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" {...props}>
+    <path d="M5.5 11.238H3.75v-1H5.5v1zM3.75 9.237H5.5v-1H3.75v1zM5.5 7.237H3.75v-1H5.5v1zM6.5 11.238h5.75v-1H6.5v1zM12.25 9.237H6.5v-1h5.75v1zM6.5 7.237h5.75v-1H6.5v1z" />
+    <path fillRule="evenodd" d="M1.5 3l.5-.5h4.75l.419.227.852 1.306H14l.5.5V13l-.5.5H2l-.5-.5V3zm1 .5v9h11V5.033H7.75l-.419-.227L6.48 3.5H2.5z" />
   </svg>
 ));
 
