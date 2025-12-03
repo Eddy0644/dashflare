@@ -53,7 +53,7 @@ const config = {
   },
   devtool: isDevelopment ? 'eval-source-map' : false,
   devServer: {
-    port: 3000,
+    port: 39218,
     hot: true,
     historyApiFallback: {
       disableDotRule: true

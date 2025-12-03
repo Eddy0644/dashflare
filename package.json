@@ -1,6 +1,6 @@
 {
   "name": "dashflare",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "repository": {
     "type": "git",
@@ -92,5 +92,11 @@
     "onlyBuiltDependencies": [
       "@swc/core"
     ]
-  }
+  },
+  "trustedDependencies": [
+    "@swc/core",
+    "core-js",
+    "core-js-pure",
+    "unrs-resolver"
+  ]
 }
