@@ -40,3 +40,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# claude code
+CLAUDE.md
+
+# bun
+bun.lock

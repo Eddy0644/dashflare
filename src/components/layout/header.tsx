@@ -82,7 +82,7 @@ function HeaderContent({ isMatchLogin }: HeaderContentProps) {
             <Menu.Label>About</Menu.Label>
             <Menu.Item
               component="a"
-              href="https://github.com/sukkaw/dashflare"
+              href="https://github.com/Eddy0644/dashflare"
               target="_blank"
               icon={<IconBrandGithub size={rem(18)} />}
             >
