@@ -13,16 +13,38 @@ export const useStyles = createStyles(theme => ({
   noWrap: {
     whiteSpace: 'nowrap'
   },
-  valueCell: {
+  nameCell: {
+    display: 'block',
     maxWidth: rem(128),
     '@media screen and (min-width: 640px)': {
-      maxWidth: rem(256)
+      maxWidth: rem(200)
     },
     '@media screen and (min-width: 960px)': {
-      maxWidth: rem(384)
+      maxWidth: rem(256)
+    }
+  },
+  valueCell: {
+    maxWidth: rem(280),
+    '@media screen and (min-width: 640px)': {
+      maxWidth: rem(300)
+    },
+    '@media screen and (min-width: 960px)': {
+      maxWidth: rem(320)
     },
     '@media screen and (min-width: 1440px)': {
-      maxWidth: rem(512)
+      maxWidth: rem(360)
+    }
+  },
+  commentCell: {
+    maxWidth: rem(120),
+    '@media screen and (min-width: 640px)': {
+      maxWidth: rem(140)
+    },
+    '@media screen and (min-width: 960px)': {
+      maxWidth: rem(180)
+    },
+    '@media screen and (min-width: 1440px)': {
+      maxWidth: rem(240)
     }
   },
   proxiedIcon: {

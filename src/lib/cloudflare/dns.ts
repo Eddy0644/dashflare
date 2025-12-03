@@ -46,6 +46,8 @@ declare global {
         autoAdded: boolean,
         [key: string]: string | boolean
       },
+      // Comment for the DNS record
+      comment?: string | null,
       priority?: number,
       data?: Extension
     }

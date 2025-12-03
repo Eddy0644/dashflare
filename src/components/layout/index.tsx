@@ -14,7 +14,8 @@ import {
   Loader,
   Center,
   Container,
-  Skeleton
+  Skeleton,
+  Box
 } from '@mantine/core';
 import { IconCloudflare } from '../icons/cloudflare';
 import { Link, Outlet } from 'react-router-dom';
@@ -25,14 +26,41 @@ import { useReactRouterEnableConcurrentNavigation } from 'foxact/use-react-route
 const HeaderContent = lazy(() => import('./header'));
 const SidebarContent = lazy(() => import('./sidebar'));
 
+const MIN_SIDEBAR_WIDTH = 180;
+const MAX_SIDEBAR_WIDTH = 400;
+const DEFAULT_SIDEBAR_WIDTH = 220;
+
 export default function Layout() {
   const theme = useMantineTheme();
   const [navbarMobileOpened, setNavbarMobileOpened] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
   const { css } = useCss();
   const toggleNavbarMobile = useCallback(() => setNavbarMobileOpened((o) => !o), []);
   const isMatchLogin = useReactRouterIsMatch('/login');
 
   useReactRouterEnableConcurrentNavigation();
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = e.clientX;
+      if (newWidth >= MIN_SIDEBAR_WIDTH && newWidth <= MAX_SIDEBAR_WIDTH) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, []);
 
   return (
     <ModalsProvider>
@@ -42,10 +70,29 @@ export default function Layout() {
           isMatchLogin
             ? undefined
             : (
-              <Navbar p={0} hiddenBreakpoint="sm" hidden={!navbarMobileOpened} width={{ sm: 300 }}>
+              <Navbar p={0} hiddenBreakpoint="sm" hidden={!navbarMobileOpened} width={{ sm: sidebarWidth }}>
                 <Suspense fallback={null}>
                   <SidebarContent />
                 </Suspense>
+                <Box
+                  onMouseDown={handleMouseDown}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    width: 4,
+                    height: '100%',
+                    cursor: 'col-resize',
+                    backgroundColor: isResizing ? theme.colors.blue[5] : 'transparent',
+                    transition: 'background-color 0.15s ease',
+                    '&:hover': {
+                      backgroundColor: theme.colors.gray[4]
+                    },
+                    '@media (max-width: 768px)': {
+                      display: 'none'
+                    }
+                  }}
+                />
               </Navbar>
             )
         }

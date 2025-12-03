@@ -1,5 +1,6 @@
-import { Box, Button, Group, ScrollArea, Table, Text, Tooltip } from '@mantine/core';
+import { Anchor, Box, Button, Group, ScrollArea, Table, Text, Tooltip } from '@mantine/core';
 import { IconCloudflare } from '@/components/icons/cloudflare';
+import { IconX } from '@tabler/icons-react';
 import type { PaginationState } from '@tanstack/react-table';
 import { createColumnHelper, useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -8,6 +9,25 @@ import { openDeleteDNSRecordModal, openEditDNSRecordModal } from './modal';
 
 const columnHelper = createColumnHelper<Cloudflare.DNSRecord>();
 const EMPTY_ARRAY: Cloudflare.DNSRecord[] = [];
+
+const NameCell = memo(({ name }: { name: string }) => {
+  const { classes } = useStyles();
+
+  return (
+    <Tooltip label={name} position="bottom-start">
+      <Anchor
+        href={`https://${name}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={classes.nameCell}
+        truncate
+        title={name}
+      >
+        {name}
+      </Anchor>
+    </Tooltip>
+  );
+});
 
 const ValueCell = memo(({ value }: { value: string }) => {
   const { classes } = useStyles();
@@ -19,28 +39,43 @@ const ValueCell = memo(({ value }: { value: string }) => {
   );
 });
 
+const CommentCell = memo(({ comment }: { comment: string | null | undefined }) => {
+  const { classes } = useStyles();
+
+  if (!comment) {
+    return <Text c="dimmed">-</Text>;
+  }
+
+  return (
+    <Tooltip label={comment} position="bottom-start">
+      <Text className={classes.commentCell} truncate title={comment}>{comment}</Text>
+    </Tooltip>
+  );
+});
+
 const ProxiedCell = memo(({ proxied, proxiable }: Pick<Cloudflare.DNSRecord, 'proxied' | 'proxiable'>) => {
   const { cx, classes } = useStyles();
 
   if (!proxiable) {
     return (
-      <Text className={classes.noWrap}>
-        Not Proxiable
-      </Text>
+      <Tooltip label="Not Proxiable">
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <IconX size={18} className={classes.proxiedIconInactive} />
+        </Box>
+      </Tooltip>
     );
   }
 
   return (
-    <Group noWrap align="center" spacing="xs" sx={{ userSelect: 'none' }}>
-      <IconCloudflare
-        width={20}
-        height={20}
-        className={cx(classes.proxiedIcon, proxied ? classes.proxiedIconActive : classes.proxiedIconInactive)}
-      />
-      <Text className={classes.noWrap}>
-        {proxied ? 'Proxied' : 'DNS Only'}
-      </Text>
-    </Group>
+    <Tooltip label={proxied ? 'Proxied' : 'DNS Only'}>
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        <IconCloudflare
+          width={20}
+          height={20}
+          className={cx(classes.proxiedIcon, proxied ? classes.proxiedIconActive : classes.proxiedIconInactive)}
+        />
+      </Box>
+    </Tooltip>
   );
 });
 
@@ -69,10 +104,23 @@ const ActionCell = memo(({ record }: ActionCellProps) => (
 ));
 
 const columns = [
+  columnHelper.accessor('proxied', {
+    header: 'CDN',
+    cell(props) {
+      const proxied = props.getValue();
+      const proxiable = props.row.original.proxiable;
+      return (
+        <ProxiedCell proxied={proxied} proxiable={proxiable} />
+      );
+    },
+    size: 48,
+    minSize: 48,
+    maxSize: 56
+  }),
   columnHelper.accessor('name', {
     header: 'Name',
     cell(props) {
-      return <ValueCell value={props.getValue()} />;
+      return <NameCell name={props.getValue()} />;
     },
     size: 128,
     minSize: 128,
@@ -91,7 +139,10 @@ const columns = [
     header: 'Value',
     cell(props) {
       return <ValueCell value={props.getValue()} />;
-    }
+    },
+    size: 320,
+    minSize: 280,
+    maxSize: 360
   }),
   columnHelper.accessor('ttl', {
     header: 'TTL',
@@ -103,18 +154,14 @@ const columns = [
     minSize: 64,
     maxSize: 72
   }),
-  columnHelper.accessor('proxied', {
-    header: 'CDN',
+  columnHelper.accessor('comment', {
+    header: 'Comment',
     cell(props) {
-      const proxied = props.getValue();
-      const proxiable = props.row.original.proxiable;
-      return (
-        <ProxiedCell proxied={proxied} proxiable={proxiable} />
-      );
+      return <CommentCell comment={props.getValue()} />;
     },
-    size: 144,
-    minSize: 144,
-    maxSize: 168
+    size: 160,
+    minSize: 120,
+    maxSize: 240
   }),
   columnHelper.display({
     id: 'actions',

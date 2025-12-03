@@ -1,8 +1,8 @@
-import { Stack, Title, Text, Skeleton, Button, Alert, Pagination, TextInput, Loader, Group, rem, Anchor, Table, Select } from '@mantine/core';
+import { Stack, Title, Text, Skeleton, Button, Alert, Pagination, TextInput, Loader, Group, rem, Anchor, Table, Select, ActionIcon, Tooltip } from '@mantine/core';
 import Disclaimer from '@/components/disclaimer';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useCloudflareZoneList } from '@/lib/cloudflare/zone-list';
-import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
+import { IconAlertCircle, IconSearch, IconPin, IconPinFilled } from '@tabler/icons-react';
 import { useUncontrolled } from 'foxact/use-uncontrolled';
 import { Link } from 'react-router-dom';
 
@@ -10,6 +10,7 @@ import title from 'title';
 import { generateAbsoluteURL } from '@/lib/url';
 import { usePagination } from '@/hooks/use-pagination';
 import { PAGE_SIZE_ARRAY } from '@/lib/constants';
+import { usePinnedDomainsActions } from '@/context/pinned-domains';
 
 const ZoneListLoading = memo(() => (
   <>
@@ -18,6 +19,36 @@ const ZoneListLoading = memo(() => (
     <Skeleton h={240} />
   </>
 ));
+
+interface PinButtonProps {
+  zoneId: string,
+  zoneName: string
+}
+
+const PinButton = memo(({ zoneId, zoneName }: PinButtonProps) => {
+  const { addPinnedDomain, removePinnedDomain, isPinned } = usePinnedDomainsActions();
+  const pinned = isPinned(zoneId);
+
+  const handleClick = useCallback(() => {
+    if (pinned) {
+      removePinnedDomain(zoneId);
+    } else {
+      addPinnedDomain({ zoneId, zoneName });
+    }
+  }, [pinned, zoneId, zoneName, addPinnedDomain, removePinnedDomain]);
+
+  return (
+    <Tooltip label={pinned ? 'Unpin domain' : 'Pin domain'}>
+      <ActionIcon
+        variant="subtle"
+        color={pinned ? 'yellow' : 'gray'}
+        onClick={handleClick}
+      >
+        {pinned ? <IconPinFilled size={16} /> : <IconPin size={16} />}
+      </ActionIcon>
+    </Tooltip>
+  );
+});
 
 function ZoneList() {
   const { pagination, handlePageIndexChange, handlePageSizeChange } = usePagination({
@@ -62,6 +93,7 @@ function ZoneList() {
       <Table verticalSpacing={8}>
         <thead>
           <tr>
+            <th style={{ width: 40 }} />
             <th>Domain</th>
             <th>Status</th>
             <th>Provider</th>
@@ -71,7 +103,14 @@ function ZoneList() {
         <tbody>
           {data?.result.map((zone) => (
             <tr key={zone.id}>
-              <td>{zone.name}</td>
+              <td>
+                <PinButton zoneId={zone.id} zoneName={zone.name} />
+              </td>
+              <td>
+                <Anchor component={Link} to={`/${zone.id}/${zone.name}/dns`}>
+                  {zone.name}
+                </Anchor>
+              </td>
               <td>{title(zone.status)}</td>
               <td>
                 <Text truncate maw={256} title={zone.host?.name || 'Cloudflare'}>
@@ -83,7 +122,7 @@ function ZoneList() {
                 </Text>
               </td>
               <td>
-                <Button compact variant="default" component={Link} to={`/${zone.id}/${zone.name}`}>Enter</Button>
+                <Button compact variant="default" component={Link} to={`/${zone.id}/${zone.name}/dns`}>Enter</Button>
               </td>
             </tr>
           ))}
@@ -124,8 +163,8 @@ export default function Homepage() {
   return (
     <Stack>
       <Title>Welcome to Dashflare!</Title>
-      <Disclaimer />
       <ZoneList />
+      <Disclaimer />
     </Stack>
   );
 }

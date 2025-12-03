@@ -6,6 +6,7 @@ import { Notifications } from '@mantine/notifications';
 import { router } from './router';
 import { MantineProviderWithDarkMode } from './context/darkmode';
 import { TokenProvider } from './context/token';
+import { PinnedDomainsProvider } from './context/pinned-domains';
 
 declare global {
   const process: {
@@ -20,7 +21,9 @@ const app = (
   <StrictMode>
     <MantineProviderWithDarkMode>
       <TokenProvider>
-        <RouterProvider router={router} />
+        <PinnedDomainsProvider>
+          <RouterProvider router={router} />
+        </PinnedDomainsProvider>
       </TokenProvider>
       <Notifications />
     </MantineProviderWithDarkMode>

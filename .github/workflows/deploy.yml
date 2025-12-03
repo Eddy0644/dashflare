@@ -52,6 +52,8 @@ jobs:
 
       - name: Build project
         run: pnpm build
+        env:
+          CLOUDFLARE_API_ENDPOINT: ${{ secrets.CLOUDFLARE_API_ENDPOINT }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

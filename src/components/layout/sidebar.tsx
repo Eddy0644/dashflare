@@ -1,10 +1,11 @@
 import { memo, useMemo } from 'react';
-import { Navbar, NavLink as MantineNavLink, rem, createStyles, Text, Group, Button } from '@mantine/core';
+import { Navbar, NavLink as MantineNavLink, rem, createStyles, Text, Group, Button, Anchor, Stack } from '@mantine/core';
 import { Link, NavLink as ReactRouterNavLink, useLocation, useParams } from 'react-router-dom';
 import type { Icon } from '@tabler/icons-react';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconPin } from '@tabler/icons-react';
 
 import { homeNavLinks, zoneNavLinks } from '@/router';
+import { usePinnedDomains } from '@/context/pinned-domains';
 
 interface NavLinkProps {
   to: string,
@@ -40,6 +41,37 @@ const NavLink = memo(({
         />
       )}
     </ReactRouterNavLink>
+  );
+});
+
+const PinnedDomainsSection = memo(() => {
+  const pinnedDomains = usePinnedDomains();
+
+  if (pinnedDomains.length === 0) {
+    return null;
+  }
+
+  return (
+    <Navbar.Section p="md" sx={theme => ({ borderTop: `${rem(1)} solid ${theme.colors.gray[2]}` })}>
+      <Group spacing="xs" mb="xs">
+        <IconPin size={rem(14)} />
+        <Text size="sm" fw={600} c="dimmed">Pinned Domains</Text>
+      </Group>
+      <Stack spacing={4}>
+        {pinnedDomains.map(domain => (
+          <Anchor
+            key={domain.zoneId}
+            component={Link}
+            to={`/${domain.zoneId}/${domain.zoneName}/dns`}
+            size="sm"
+            truncate
+            title={domain.zoneName}
+          >
+            {domain.zoneName}
+          </Anchor>
+        ))}
+      </Stack>
+    </Navbar.Section>
   );
 });
 
@@ -99,6 +131,7 @@ function SidebarContent() {
           );
         }, [pathname, zoneId, zoneName])}
       </Navbar.Section>
+      <PinnedDomainsSection />
     </>
   );
 }
