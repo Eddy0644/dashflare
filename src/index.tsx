@@ -7,6 +7,7 @@ import { router } from './router';
 import { MantineProviderWithDarkMode } from './context/darkmode';
 import { TokenProvider } from './context/token';
 import { PinnedDomainsProvider } from './context/pinned-domains';
+import { SelectedAccountProvider } from './context/selected-account';
 
 declare global {
   const process: {
@@ -21,9 +22,11 @@ const app = (
   <StrictMode>
     <MantineProviderWithDarkMode>
       <TokenProvider>
-        <PinnedDomainsProvider>
-          <RouterProvider router={router} />
-        </PinnedDomainsProvider>
+        <SelectedAccountProvider>
+          <PinnedDomainsProvider>
+            <RouterProvider router={router} />
+          </PinnedDomainsProvider>
+        </SelectedAccountProvider>
       </TokenProvider>
       <Notifications />
     </MantineProviderWithDarkMode>

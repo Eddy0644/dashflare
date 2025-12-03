@@ -1,12 +1,15 @@
-import { Group, UnstyledButton, rem, Menu, Box, Text, Tooltip, ActionIcon } from '@mantine/core';
+import { Group, UnstyledButton, rem, Menu, Box, Text, Tooltip, ActionIcon, Select } from '@mantine/core';
+import type { SelectItem } from '@mantine/core';
 import { IconBrandGithub, IconChevronDown, IconUserCircle } from '@tabler/icons-react';
 import { DarkModeSwitch } from '../darkmode-switch-menu';
 import { useDisclosure } from '@mantine/hooks';
 import TokenViewer from '../token-modal';
 import { useLogout } from '@/context/token';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useCloudflareApiRateLimit } from '@/lib/fetcher';
-import { IconCloudflare, IconCloudflareZeroTrust } from '../icons/cloudflare';
+import { IconCloudflare, IconCloudflareZeroTrust, IconCloudflareWorkers, IconCloudflareR2 } from '../icons/cloudflare';
+import { useCloudflareAccounts } from '@/lib/cloudflare/accounts';
+import { useSelectedAccountId, useSelectedAccountActions } from '@/context/selected-account';
 
 interface HeaderContentProps {
   isMatchLogin: boolean
@@ -19,19 +22,64 @@ function CloudflareRateLimit() {
   );
 }
 
+function AccountSelector() {
+  const { data: accounts, isLoading } = useCloudflareAccounts();
+  const selectedAccountId = useSelectedAccountId();
+  const { setSelectedAccountId } = useSelectedAccountActions();
+
+  const accountListData: SelectItem[] = useMemo(() => accounts?.flatMap(accountList => accountList.result.map(account => ({
+    label: account.name,
+    value: account.id
+  }))) || [], [accounts]);
+
+  return (
+    <Select
+      size="xs"
+      placeholder={isLoading ? 'Loading...' : 'Select account'}
+      disabled={isLoading}
+      data={accountListData}
+      value={selectedAccountId}
+      onChange={setSelectedAccountId}
+      clearable
+      styles={{
+        input: {
+          minWidth: 150
+        }
+      }}
+    />
+  );
+}
+
 function HeaderContent({ isMatchLogin }: HeaderContentProps) {
   const [opened, { open, close }] = useDisclosure();
   const logout = useLogout();
+  const selectedAccountId = useSelectedAccountId();
+
+  const dashboardUrl = selectedAccountId
+    ? `https://dash.cloudflare.com/${selectedAccountId}/home/domains`
+    : 'https://dash.cloudflare.com/zones';
+
+  const zeroTrustUrl = selectedAccountId
+    ? `https://one.dash.cloudflare.com/${selectedAccountId}/overview`
+    : 'https://one.dash.cloudflare.com/';
+
+  const workersUrl = selectedAccountId
+    ? `https://dash.cloudflare.com/${selectedAccountId}/workers-and-pages`
+    : 'https://dash.cloudflare.com/';
+
+  const r2Url = selectedAccountId
+    ? `https://dash.cloudflare.com/${selectedAccountId}/r2/overview`
+    : 'https://dash.cloudflare.com/';
 
   return (
     <>
       <Group spacing="xs">
         {!isMatchLogin && (
           <>
-            <Tooltip label="Cloudflare Dashboard">
+            <Tooltip label="Cloudflare Domains">
               <ActionIcon
                 component="a"
-                href="https://dash.cloudflare.com/zones"
+                href={dashboardUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="subtle"
@@ -43,13 +91,37 @@ function HeaderContent({ isMatchLogin }: HeaderContentProps) {
             <Tooltip label="Cloudflare Zero Trust">
               <ActionIcon
                 component="a"
-                href="https://one.dash.cloudflare.com/"
+                href={zeroTrustUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="subtle"
                 size="lg"
               >
                 <IconCloudflareZeroTrust width={20} height={20} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Workers & Pages">
+              <ActionIcon
+                component="a"
+                href={workersUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="subtle"
+                size="lg"
+              >
+                <IconCloudflareWorkers width={20} height={20} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="R2 Storage">
+              <ActionIcon
+                component="a"
+                href={r2Url}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="subtle"
+                size="lg"
+              >
+                <IconCloudflareR2 width={20} height={20} />
               </ActionIcon>
             </Tooltip>
           </>
@@ -96,6 +168,11 @@ function HeaderContent({ isMatchLogin }: HeaderContentProps) {
 
             {!isMatchLogin && (
               <>
+                <Menu.Label>Cloudflare Account</Menu.Label>
+                <Box px="xs" mb="xs">
+                  <AccountSelector />
+                </Box>
+
                 <Menu.Label>Cloudflare API Rate Limit</Menu.Label>
                 <Box px="xs" mb="xs">
                   <Text size="sm">

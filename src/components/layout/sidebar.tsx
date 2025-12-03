@@ -1,11 +1,13 @@
 import { memo, useMemo } from 'react';
-import { Navbar, NavLink as MantineNavLink, rem, createStyles, Text, Group, Button, Anchor, Stack } from '@mantine/core';
+import { Navbar, NavLink as MantineNavLink, rem, createStyles, Text, Group, Button, Anchor, Stack, Box } from '@mantine/core';
 import { Link, NavLink as ReactRouterNavLink, useLocation, useParams } from 'react-router-dom';
 import type { Icon } from '@tabler/icons-react';
-import { IconArrowLeft, IconPin } from '@tabler/icons-react';
+import { IconArrowLeft, IconPin, IconExternalLink } from '@tabler/icons-react';
 
 import { homeNavLinks, zoneNavLinks } from '@/router';
 import { usePinnedDomains } from '@/context/pinned-domains';
+import { useSelectedAccountId } from '@/context/selected-account';
+import { IconCloudflare, IconCloudflareZeroTrust, IconCloudflareWorkers, IconCloudflareR2 } from '../icons/cloudflare';
 
 interface NavLinkProps {
   to: string,
@@ -14,7 +16,11 @@ interface NavLinkProps {
 }
 
 const useStyles = createStyles({
-  a: { textDecoration: 'none' }
+  a: { textDecoration: 'none' },
+  externalLink: {
+    textDecoration: 'none',
+    display: 'block'
+  }
 });
 
 const NavLink = memo(({
@@ -41,6 +47,82 @@ const NavLink = memo(({
         />
       )}
     </ReactRouterNavLink>
+  );
+});
+
+interface ExternalNavLinkProps {
+  href: string,
+  label: string,
+  icon: React.ReactNode
+}
+
+const ExternalNavLink = memo(({ href, label, icon }: ExternalNavLinkProps) => {
+  const { classes } = useStyles();
+
+  return (
+    <a
+      className={classes.externalLink}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <MantineNavLink
+        label={
+          <Group spacing={4} noWrap>
+            <Text fw={400}>{label}</Text>
+            <IconExternalLink size={rem(12)} style={{ opacity: 0.5 }} />
+          </Group>
+        }
+        variant="subtle"
+        icon={icon}
+      />
+    </a>
+  );
+});
+
+const ExternalLinksSection = memo(() => {
+  const selectedAccountId = useSelectedAccountId();
+
+  const dashboardUrl = selectedAccountId
+    ? `https://dash.cloudflare.com/${selectedAccountId}/home/domains`
+    : 'https://dash.cloudflare.com/zones';
+
+  const zeroTrustUrl = selectedAccountId
+    ? `https://one.dash.cloudflare.com/${selectedAccountId}/overview`
+    : 'https://one.dash.cloudflare.com/';
+
+  const workersUrl = selectedAccountId
+    ? `https://dash.cloudflare.com/${selectedAccountId}/workers-and-pages`
+    : 'https://dash.cloudflare.com/';
+
+  const r2Url = selectedAccountId
+    ? `https://dash.cloudflare.com/${selectedAccountId}/r2/overview`
+    : 'https://dash.cloudflare.com/';
+
+  return (
+    <Box mt="md">
+      <Text size="xs" fw={600} c="dimmed" mb={4} px={rem(12)}>Cloudflare Console</Text>
+      <ExternalNavLink
+        href={dashboardUrl}
+        label="Domains"
+        icon={<IconCloudflare width={16} height={16} />}
+      />
+      <ExternalNavLink
+        href={zeroTrustUrl}
+        label="Zero Trust"
+        icon={<IconCloudflareZeroTrust width={16} height={16} />}
+      />
+      <ExternalNavLink
+        href={workersUrl}
+        label="Workers & Pages"
+        icon={<IconCloudflareWorkers width={16} height={16} />}
+      />
+      <ExternalNavLink
+        href={r2Url}
+        label="R2 Storage"
+        icon={<IconCloudflareR2 width={16} height={16} />}
+      />
+    </Box>
   );
 });
 
@@ -109,6 +191,7 @@ function SidebarContent() {
                     icon={link.icon}
                   />
                 ))}
+                <ExternalLinksSection />
               </>
             );
           }

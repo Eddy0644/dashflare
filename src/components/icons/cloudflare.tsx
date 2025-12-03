@@ -9,3 +9,22 @@ export const IconCloudflareZeroTrust = memo((props: React.JSX.IntrinsicElements[
     <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 2.18l7 3.89v5.43c0 4.5-3.13 8.71-7 9.93-3.87-1.22-7-5.43-7-9.93V8.07l7-3.89zm-1 4.32v8h2v-8h-2zm0-3v2h2v-2h-2z" />
   </svg>
 ));
+
+export const IconCloudflareWorkers = memo((props: React.JSX.IntrinsicElements['svg']) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M10.595 8.032l-3.932 7.479-1.33-2.534a.63.63 0 00-.557-.334H2.22l5.19-9.878a.628.628 0 011.108 0l2.077 3.951v1.316zm8.553 4.945l-3.87 7.363a.628.628 0 01-1.108 0L9.193 10.47H6.647l5.19 9.878a.628.628 0 001.108 0l6.203-11.805h-2.556l2.556 4.434z" />
+  </svg>
+));
+
+export const IconCloudflareR2 = memo((props: React.JSX.IntrinsicElements['svg']) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+    <text x="12" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" fill="currentColor">R2</text>
+  </svg>
+));
+
+export const IconCloudflareDomains = memo((props: React.JSX.IntrinsicElements['svg']) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+  </svg>
+));
