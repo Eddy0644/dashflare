@@ -1,1 +1,10 @@
-/*    /index.html   200
+# SPA routes - serve index.html for all dynamic routes
+/login /index.html 200
+/404 /index.html 200
+/account/delete-old-pages /index.html 200
+/account/delete-old-pages/:accountId /index.html 200
+/:zoneId/:zoneName /index.html 200
+/:zoneId/:zoneName/dns /index.html 200
+/:zoneId/:zoneName/universal-ssl /index.html 200
+/:zoneId/:zoneName/ssl-verifications /index.html 200
+/:zoneId/:zoneName/etag /index.html 200
