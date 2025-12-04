@@ -1,5 +1,5 @@
 import { modals } from '@mantine/modals';
-import { Box, Button, Group, Input, NativeSelect, NumberInput, Stack, Switch, TextInput, Text } from '@mantine/core';
+import { Box, Button, Group, Input, NativeSelect, NumberInput, Stack, Switch, TextInput, Textarea, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { currentlySupportedCloudflareDNSRecordTypes, useUpdateCloudflareDNSRecord, useDeleteCloudflareDNSRecord } from '@/lib/cloudflare/dns';
 import { memo, useCallback, useMemo, useState } from 'react';
@@ -26,7 +26,8 @@ const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
       name: record?.name ?? '',
       content: record?.content ?? '',
       ttl: record?.ttl ?? 1,
-      proxied: record?.proxied ?? true
+      proxied: record?.proxied ?? true,
+      comment: record?.comment ?? ''
     }
   });
   const [autoTtl, setAutoTtl] = useState(record ? record.ttl === 1 : true);
@@ -104,6 +105,14 @@ const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
               color="orange"
             />
           </Input.Wrapper>
+          <Textarea
+            label="Comment"
+            placeholder="Add a comment for this record (optional)"
+            autosize
+            minRows={2}
+            maxRows={4}
+            {...form.getInputProps('comment')}
+          />
           {
             useMemo(() => (
               <Group spacing="xs">

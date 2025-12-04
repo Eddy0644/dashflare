@@ -52,7 +52,7 @@ declare global {
       data?: Extension
     }
 
-    export type CreateDNSRecord = Pick<DNSRecord, 'name' | 'type' | 'content' | 'ttl' | 'proxied'>;
+    export type CreateDNSRecord = Pick<DNSRecord, 'name' | 'type' | 'content' | 'ttl' | 'proxied' | 'comment'>;
   }
 }
 
