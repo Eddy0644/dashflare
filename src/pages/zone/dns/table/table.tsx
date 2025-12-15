@@ -1,6 +1,7 @@
 import { Anchor, Box, Button, Group, ScrollArea, Table, Text, Tooltip } from '@mantine/core';
+import { useClipboard } from '@mantine/hooks';
 import { IconCloudflare } from '@/components/icons/cloudflare';
-import { IconX } from '@tabler/icons-react';
+import { IconCopy, IconX } from '@tabler/icons-react';
 import type { PaginationState } from '@tanstack/react-table';
 import { createColumnHelper, useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -12,20 +13,39 @@ const EMPTY_ARRAY: Cloudflare.DNSRecord[] = [];
 
 const NameCell = memo(({ name }: { name: string }) => {
   const { classes } = useStyles();
+  const clipboard = useClipboard({ timeout: 2000 });
+
+  const handleCopy = () => {
+    clipboard.copy(name);
+  };
 
   return (
-    <Tooltip label={name} position="bottom-start">
-      <Anchor
-        href={`https://${name}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={classes.nameCell}
-        truncate
-        title={name}
-      >
-        {name}
-      </Anchor>
-    </Tooltip>
+    <Group spacing={4} noWrap>
+      <Tooltip label={clipboard.copied ? 'Copied' : 'Copy'} position="bottom-start">
+        <Button
+          compact
+          variant="subtle"
+          size="xs"
+          onClick={handleCopy}
+          px={4}
+          color={clipboard.copied ? 'green' : 'gray'}
+        >
+          <IconCopy size={14} />
+        </Button>
+      </Tooltip>
+      <Tooltip label={name} position="bottom-start">
+        <Anchor
+          href={`https://${name}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes.nameCell}
+          truncate
+          title={name}
+        >
+          {name}
+        </Anchor>
+      </Tooltip>
+    </Group>
   );
 });
 
