@@ -2,7 +2,7 @@ import { modals } from '@mantine/modals';
 import { Box, Button, Group, Input, NativeSelect, NumberInput, Stack, Switch, TextInput, Textarea, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { currentlySupportedCloudflareDNSRecordTypes, useUpdateCloudflareDNSRecord, useDeleteCloudflareDNSRecord } from '@/lib/cloudflare/dns';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState, useRef } from 'react';
 
 import { useStyles } from './table.styles';
 import { IconCloudflare } from '@/components/icons/cloudflare';
@@ -13,6 +13,10 @@ interface DNSEditFormProps {
 }
 
 const SUPPORTED_DNS_RECORD_TYPES = Array.from(currentlySupportedCloudflareDNSRecordTypes);
+
+// Helper functions to detect IP address types
+const isIPv4 = (value: string) => /^(\d{1,3}\.){3}\d{1,3}$/.test(value.trim());
+const isIPv6 = (value: string) => /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/.test(value.trim()) || /^::1?$/.test(value.trim());
 
 const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
   const isCreate = !record;
@@ -26,10 +30,14 @@ const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
       name: record?.name ?? '',
       content: record?.content ?? '',
       ttl: record?.ttl ?? 1,
-      proxied: record?.proxied ?? true,
+      proxied: record?.proxied ?? false,
       comment: record?.comment ?? ''
     }
   });
+
+  // Track if user has manually changed the record type
+  const userManuallyChangedType = useRef(false);
+
   const [autoTtl, setAutoTtl] = useState(record ? record.ttl === 1 : true);
   const handleAutoTtlChange: React.ChangeEventHandler<HTMLInputElement> = useCallback((event) => {
     const isAutoTtl = event.currentTarget.checked;
@@ -37,6 +45,28 @@ const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
       form.setFieldValue('ttl', 1);
     }
     setAutoTtl(isAutoTtl);
+  }, [form]);
+
+  // Handle type change - mark as manually changed
+  const handleTypeChange: React.ChangeEventHandler<HTMLSelectElement> = useCallback((event) => {
+    userManuallyChangedType.current = true;
+    form.getInputProps('type').onChange(event);
+  }, [form]);
+
+  // Auto-detect record type based on content value
+  const handleContentBlur: React.FocusEventHandler<HTMLInputElement> = useCallback((event) => {
+    if (userManuallyChangedType.current) return;
+
+    const value = event.currentTarget.value;
+    if (!value) return;
+
+    if (isIPv4(value)) {
+      form.setFieldValue('type', 'A');
+    } else if (isIPv6(value)) {
+      form.setFieldValue('type', 'AAAA');
+    } else {
+      form.setFieldValue('type', 'CNAME');
+    }
   }, [form]);
 
   const handleReset: React.FormEventHandler<HTMLFormElement> = useCallback((e) => {
@@ -64,6 +94,7 @@ const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
             withAsterisk
             data={SUPPORTED_DNS_RECORD_TYPES}
             {...form.getInputProps('type')}
+            onChange={handleTypeChange}
           />
           <TextInput
             label="Name"
@@ -74,6 +105,7 @@ const DNSEditForm = memo(({ record, modalId }: DNSEditFormProps) => {
             label="Value"
             withAsterisk
             {...form.getInputProps('content')}
+            onBlur={handleContentBlur}
           />
           <Group w="100%" grow>
             <NumberInput
