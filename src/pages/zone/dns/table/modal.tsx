@@ -2,7 +2,7 @@ import { modals } from '@mantine/modals';
 import { Box, Button, Group, Input, NativeSelect, NumberInput, Stack, Switch, TextInput, Textarea, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { currentlySupportedCloudflareDNSRecordTypes, useUpdateCloudflareDNSRecord, useDeleteCloudflareDNSRecord } from '@/lib/cloudflare/dns';
-import { memo, useCallback, useMemo, useState, useRef } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 
 import { useStyles } from './table.styles';
 import { IconCloudflare } from '@/components/icons/cloudflare';
@@ -182,35 +182,52 @@ const DNSModal = memo(({ record, modalId }: DNSEditFormProps) => {
   );
 });
 
-export function openEditDNSRecordModal(record?: Cloudflare.DNSRecord) {
-  const modalId = `dns-record-modal-${record?.id ?? 'create'}`;
+export function openEditDNSRecordModal(record?: Cloudflare.DNSRecord, isDuplicate = false) {
+  const effectiveRecord = isDuplicate && record
+    ? { ...record, id: undefined } as unknown as Cloudflare.DNSRecord | undefined
+    : record;
+  const isCreate = !record || isDuplicate;
+  const modalId = `dns-record-modal-${isCreate ? 'create' : record?.id}`;
 
   return modals.open({
     centered: true,
     modalId,
-    title: record ? 'Edit DNS Record' : 'Add DNS Record',
+    title: isCreate ? 'Add DNS Record' : 'Edit DNS Record',
     children: (
-      <DNSModal record={record} modalId={modalId} />
+      <DNSModal record={isDuplicate ? effectiveRecord : record} modalId={modalId} />
     )
   });
 }
 
-const DeleteDNSRecordModal = memo(({ recordId, recordName, modalId }: { recordId: string, recordName: string, modalId: string }) => {
+const DeleteDNSRecordModal = memo(({ record, modalId }: { record: Cloudflare.DNSRecord, modalId: string }) => {
   const { trigger, isMutating } = useDeleteCloudflareDNSRecord();
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-focus the confirm button when modal opens
+  useEffect(() => {
+    // Small delay to ensure modal is fully rendered
+    const timer = setTimeout(() => {
+      confirmButtonRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCancel = () => {
     modals.close(modalId);
   };
 
   const handleConfirm = () => {
-    trigger(recordId);
+    // Log full record to console for recovery
+    console.log('[DNS] Deleted record:', JSON.stringify(record, null, 2));
+    console.log(`[DNS] To recreate: type=${record.type} name=${record.name} content=${record.content} ttl=${record.ttl} proxied=${record.proxied}`);
+    trigger(record.id);
     modals.close(modalId);
   };
 
   return (
     <Stack>
       <Text size="sm">
-        Are you sure you want to delete your DNS record of {recordName}? This action is destructive and you will have
+        Are you sure you want to delete your DNS record of {record.name}? This action is destructive and you will have
         to contact support to restore your data.
       </Text>
 
@@ -219,7 +236,7 @@ const DeleteDNSRecordModal = memo(({ recordId, recordName, modalId }: { recordId
           Cancel
         </Button>
 
-        <Button loading={isMutating} color="red" onClick={handleConfirm}>
+        <Button ref={confirmButtonRef} loading={isMutating} color="red" onClick={handleConfirm}>
           Confirm and Delete
         </Button>
       </Group>
@@ -227,15 +244,15 @@ const DeleteDNSRecordModal = memo(({ recordId, recordName, modalId }: { recordId
   );
 });
 
-export function openDeleteDNSRecordModal(recordId: string, recordName: string) {
-  const modalId = `dns-delete-record-modal-${recordId}`;
+export function openDeleteDNSRecordModal(record: Cloudflare.DNSRecord) {
+  const modalId = `dns-delete-record-modal-${record.id}`;
 
   return modals.open({
     modalId,
     title: 'Delete DNS Record',
     centered: true,
     children: (
-      <DeleteDNSRecordModal recordId={recordId} recordName={recordName} modalId={modalId} />
+      <DeleteDNSRecordModal record={record} modalId={modalId} />
     )
   });
 }

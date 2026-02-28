@@ -15,24 +15,24 @@ export const useStyles = createStyles(theme => ({
   },
   nameCell: {
     display: 'block',
-    maxWidth: rem(128),
+    maxWidth: rem(108),
     '@media screen and (min-width: 640px)': {
-      maxWidth: rem(200)
+      maxWidth: rem(180)
     },
     '@media screen and (min-width: 960px)': {
-      maxWidth: rem(256)
+      maxWidth: rem(236)
     }
   },
   valueCell: {
-    maxWidth: rem(280),
+    maxWidth: rem(240),
     '@media screen and (min-width: 640px)': {
-      maxWidth: rem(300)
+      maxWidth: rem(260)
     },
     '@media screen and (min-width: 960px)': {
-      maxWidth: rem(320)
+      maxWidth: rem(280)
     },
     '@media screen and (min-width: 1440px)': {
-      maxWidth: rem(360)
+      maxWidth: rem(320)
     }
   },
   commentCell: {

@@ -1,10 +1,10 @@
 import { Anchor, Box, Button, Group, ScrollArea, Table, Text, Tooltip } from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
 import { IconCloudflare } from '@/components/icons/cloudflare';
-import { IconCopy, IconX } from '@tabler/icons-react';
+import { IconCopy, IconGitFork, IconSortAscending, IconSortDescending, IconX } from '@tabler/icons-react';
 import type { PaginationState } from '@tanstack/react-table';
 import { createColumnHelper, useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStyles } from './table.styles';
 import { openDeleteDNSRecordModal, openEditDNSRecordModal } from './modal';
 
@@ -51,11 +51,30 @@ const NameCell = memo(({ name }: { name: string }) => {
 
 const ValueCell = memo(({ value }: { value: string }) => {
   const { classes } = useStyles();
+  const clipboard = useClipboard({ timeout: 2000 });
+
+  const handleCopy = () => {
+    clipboard.copy(value);
+  };
 
   return (
-    <Tooltip label={value} position="bottom-start">
-      <Text className={classes.valueCell} truncate title={value}>{value}</Text>
-    </Tooltip>
+    <Group spacing={4} noWrap>
+      <Tooltip label={clipboard.copied ? 'Copied' : 'Copy'} position="bottom-start">
+        <Button
+          compact
+          variant="subtle"
+          size="xs"
+          onClick={handleCopy}
+          px={4}
+          color={clipboard.copied ? 'green' : 'gray'}
+        >
+          <IconCopy size={14} />
+        </Button>
+      </Tooltip>
+      <Tooltip label={value} position="bottom-start">
+        <Text className={classes.valueCell} truncate title={value}>{value}</Text>
+      </Tooltip>
+    </Group>
   );
 });
 
@@ -108,6 +127,17 @@ const ActionCell = memo(({ record }: ActionCellProps) => {
 
   return (
     <Group align="center" spacing={0} noWrap>
+      <Tooltip label="Duplicate">
+        <Button
+          compact
+          variant="subtle"
+          color="gray"
+          onClick={useCallback(() => openEditDNSRecordModal(record, true), [record])}
+          px={4}
+        >
+          <IconGitFork size={16} />
+        </Button>
+      </Tooltip>
       <Button
         compact
         variant="subtle"
@@ -120,7 +150,7 @@ const ActionCell = memo(({ record }: ActionCellProps) => {
         compact
         variant="subtle"
         color="red"
-        onClick={useCallback(() => openDeleteDNSRecordModal(record.id, record.name), [record])}
+        onClick={useCallback(() => openDeleteDNSRecordModal(record), [record])}
       >
         Delete
       </Button>
@@ -128,94 +158,164 @@ const ActionCell = memo(({ record }: ActionCellProps) => {
   );
 });
 
-const columns = [
-  columnHelper.accessor('proxied', {
-    header: 'CDN',
-    cell(props) {
-      const proxied = props.getValue();
-      const proxiable = props.row.original.proxiable;
-      return (
-        <ProxiedCell proxied={proxied} proxiable={proxiable} />
-      );
-    },
-    size: 48,
-    minSize: 48,
-    maxSize: 56
-  }),
-  columnHelper.accessor('name', {
-    header: 'Name',
-    cell(props) {
-      return <NameCell name={props.getValue()} />;
-    },
-    size: 128,
-    minSize: 128,
-    maxSize: 256
-  }),
-  columnHelper.accessor('type', {
-    header: 'Type',
-    cell(props) {
-      const meta = props.row.original.meta;
-      if (meta?.origin_worker_id) {
-        return 'Worker';
+// Sortable column IDs (excludes proxied and actions)
+type SortableColumnId = 'name' | 'type' | 'content' | 'ttl' | 'comment';
+type SortDirection = 'asc' | 'desc';
+interface SortState {
+  column: SortableColumnId | null;
+  direction: SortDirection;
+}
+
+const SortableHeader = memo(({ label, columnId, sortState, onSort }: {
+  label: string,
+  columnId: SortableColumnId,
+  sortState: SortState,
+  onSort: (columnId: SortableColumnId) => void
+}) => {
+  const isActive = sortState.column === columnId;
+  return (
+    <Group spacing={2} noWrap sx={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => onSort(columnId)}>
+      <Text>{label}</Text>
+      <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 0, opacity: isActive ? 1 : 0.3 }}>
+        {isActive && sortState.direction === 'asc'
+          ? <IconSortAscending size={14} />
+          : isActive && sortState.direction === 'desc'
+            ? <IconSortDescending size={14} />
+            : <IconSortAscending size={14} />
+        }
+      </Box>
+    </Group>
+  );
+});
+
+function getColumns(sortState: SortState, onSort: (columnId: SortableColumnId) => void) {
+  return [
+    columnHelper.accessor('proxied', {
+      header: 'CDN',
+      cell(props) {
+        const proxied = props.getValue();
+        const proxiable = props.row.original.proxiable;
+        return (
+          <ProxiedCell proxied={proxied} proxiable={proxiable} />
+        );
+      },
+      size: 48,
+      minSize: 48,
+      maxSize: 56
+    }),
+    columnHelper.accessor('name', {
+      header: () => <SortableHeader label="Name" columnId="name" sortState={sortState} onSort={onSort} />,
+      cell(props) {
+        return <NameCell name={props.getValue()} />;
+      },
+      size: 112,
+      minSize: 112,
+      maxSize: 240
+    }),
+    columnHelper.accessor('type', {
+      header: () => <SortableHeader label="Type" columnId="type" sortState={sortState} onSort={onSort} />,
+      cell(props) {
+        const meta = props.row.original.meta;
+        if (meta?.origin_worker_id) {
+          return 'Worker';
+        }
+        return props.getValue();
+      },
+      size: 48,
+      minSize: 48,
+      maxSize: 56
+    }),
+    columnHelper.accessor('content', {
+      header: () => <SortableHeader label="Value" columnId="content" sortState={sortState} onSort={onSort} />,
+      cell(props) {
+        const meta = props.row.original.meta;
+        if (meta?.origin_worker_id) {
+          return <Text c="dimmed">-</Text>;
+        }
+        return <ValueCell value={props.getValue()} />;
+      },
+      size: 280,
+      minSize: 240,
+      maxSize: 340
+    }),
+    columnHelper.accessor('ttl', {
+      header: () => <SortableHeader label="TTL" columnId="ttl" sortState={sortState} onSort={onSort} />,
+      cell(props) {
+        const ttl = props.renderValue();
+        return ttl === 1 ? 'Auto' : ttl;
+      },
+      size: 64,
+      minSize: 64,
+      maxSize: 72
+    }),
+    columnHelper.accessor('comment', {
+      header: () => <SortableHeader label="Comment" columnId="comment" sortState={sortState} onSort={onSort} />,
+      cell(props) {
+        return <CommentCell comment={props.getValue()} />;
+      },
+      size: 160,
+      minSize: 120,
+      maxSize: 240
+    }),
+    columnHelper.display({
+      id: 'actions',
+      // size: 128,
+      minSize: 148,
+      maxSize: 180,
+      meta: {
+        isFixed: true
+      },
+      cell(props) {
+        return (
+          <ActionCell record={props.row.original} />
+        );
       }
-      return props.getValue();
-    },
-    size: 48,
-    minSize: 48,
-    maxSize: 56
-  }),
-  columnHelper.accessor('content', {
-    header: 'Value',
-    cell(props) {
-      const meta = props.row.original.meta;
-      if (meta?.origin_worker_id) {
-        return <Text c="dimmed">-</Text>;
-      }
-      return <ValueCell value={props.getValue()} />;
-    },
-    size: 320,
-    minSize: 280,
-    maxSize: 360
-  }),
-  columnHelper.accessor('ttl', {
-    header: 'TTL',
-    cell(props) {
-      const ttl = props.renderValue();
-      return ttl === 1 ? 'Auto' : ttl;
-    },
-    size: 64,
-    minSize: 64,
-    maxSize: 72
-  }),
-  columnHelper.accessor('comment', {
-    header: 'Comment',
-    cell(props) {
-      return <CommentCell comment={props.getValue()} />;
-    },
-    size: 160,
-    minSize: 120,
-    maxSize: 240
-  }),
-  columnHelper.display({
-    id: 'actions',
-    // size: 128,
-    minSize: 128,
-    maxSize: 160,
-    meta: {
-      isFixed: true
-    },
-    cell(props) {
-      return (
-        <ActionCell record={props.row.original} />
-      );
-    }
-  })
-];
+    })
+  ];
+}
 
 interface DNSDataTableProps {
   data: Cloudflare.DNSRecord[],
   pageCount: number,
   pagination: PaginationState
+}
+
+// Type priority for sorting: A/AAAA/CNAME first (0), Worker middle (0.5), MX/NS/TXT/others last (1)
+const TYPE_PRIORITY: Record<string, number> = {
+  A: 0, AAAA: 0, CNAME: 0,
+  Worker: 0.5,
+  MX: 1, NS: 1, TXT: 1, SPF: 1, SRV: 1
+};
+
+function getTypePriority(type: string, meta?: Cloudflare.DNSRecord['meta']): number {
+  if (meta?.origin_worker_id) return TYPE_PRIORITY.Worker;
+  return TYPE_PRIORITY[type] ?? 1;
+}
+
+// Comparator for a specific column
+function compareByColumn(a: Cloudflare.DNSRecord, b: Cloudflare.DNSRecord, column: SortableColumnId, direction: SortDirection): number {
+  let cmp = 0;
+  switch (column) {
+    case 'name':
+      cmp = a.name.localeCompare(b.name);
+      break;
+    case 'type': {
+      const typeA = a.meta?.origin_worker_id ? 'Worker' : a.type;
+      const typeB = b.meta?.origin_worker_id ? 'Worker' : b.type;
+      cmp = typeA.localeCompare(typeB);
+      break;
+    }
+    case 'content':
+      cmp = a.content.localeCompare(b.content);
+      break;
+    case 'ttl':
+      cmp = a.ttl - b.ttl;
+      break;
+    case 'comment':
+      cmp = (a.comment ?? '').localeCompare(b.comment ?? '');
+      break;
+  }
+  return direction === 'desc' ? -cmp : cmp;
 }
 
 const DNSDataTable = memo(({
@@ -253,18 +353,53 @@ const DNSDataTable = memo(({
 
   const { cx, classes } = useStyles();
 
+  // Sort state: null column means use default sort
+  const [sortState, setSortState] = useState<SortState>({ column: null, direction: 'asc' });
+
+  const handleSort = useCallback((columnId: SortableColumnId) => {
+    setSortState(prev => {
+      if (prev.column === columnId) {
+        // Cycle: asc -> desc -> reset to default
+        if (prev.direction === 'asc') return { column: columnId, direction: 'desc' };
+        return { column: null, direction: 'asc' };
+      }
+      return { column: columnId, direction: 'asc' };
+    });
+  }, []);
+
+  const tableColumns = useMemo(() => getColumns(sortState, handleSort), [sortState, handleSort]);
+
+  // Sort data: use user-selected column, or default sort
+  const sortedData = useMemo(() => {
+    if (!data || data.length === 0) return data || EMPTY_ARRAY;
+    return [...data].sort((a, b) => {
+      if (sortState.column) {
+        return compareByColumn(a, b, sortState.column, sortState.direction);
+      }
+      // Default sort: type group -> content -> type -> name
+      const groupA = getTypePriority(a.type, a.meta);
+      const groupB = getTypePriority(b.type, b.meta);
+      if (groupA !== groupB) return groupA - groupB;
+      const contentCmp = a.content.localeCompare(b.content);
+      if (contentCmp !== 0) return contentCmp;
+      const typeCmp = a.type.localeCompare(b.type);
+      if (typeCmp !== 0) return typeCmp;
+      return a.name.localeCompare(b.name);
+    });
+  }, [data, sortState]);
+
   const table = useReactTable({
     // https://github.com/TanStack/table/discussions/4179#discussioncomment-3631326
     defaultColumn: {
       minSize: 0,
       size: 0
     },
-    data: data || EMPTY_ARRAY,
+    data: sortedData,
     pageCount,
     state: { pagination },
     manualPagination: true,
     // onPaginationChange: setPagination,
-    columns,
+    columns: tableColumns,
     getCoreRowModel: getCoreRowModel()
   });
 
@@ -295,11 +430,11 @@ const DNSDataTable = memo(({
       ref={containerElementRef}
       viewportRef={containerViewportRef}
       onScrollPositionChange={handleScrollAreaPositionChange}
-      // offsetScrollbars
-      // type="always"
+    // offsetScrollbars
+    // type="always"
     >
       <Table
-      // withBorder
+        // withBorder
         w="100%"
         ref={tableElementRef}
         className={classes.table}
