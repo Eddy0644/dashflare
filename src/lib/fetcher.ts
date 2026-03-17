@@ -41,7 +41,7 @@ export class HTTPError extends Error {
   }
 }
 
-export const buildApiEndpoint = (key: string) => new URL(key, process.env.CLOUDFLARE_API_ENDPOINT || new URL('/_sukka/api/', window.location.href));
+export const buildApiEndpoint = (key: string) => new URL(key, process.env.CLOUDFLARE_API_ENDPOINT || new URL('/_api/', window.location.href));
 
 export function buildRequestInitWithToken(token: string, init?: RequestInit): RequestInit {
   const headers = new Headers({

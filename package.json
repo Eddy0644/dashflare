@@ -11,7 +11,9 @@
     "dev": "NODE_ENV=development webpack serve --mode development",
     "build": "NODE_ENV=production webpack --mode production",
     "build:analyze": "ANALYZE=true NODE_ENV=production webpack --mode production",
-    "lint": "eslint --format=sukka ."
+    "lint": "eslint --format=sukka .",
+    "deploy": "pnpm build && pnpm exec wrangler pages deploy dist",
+    "preview": "pnpm exec wrangler pages dev dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251117.0",
+    "wrangler": "^4.0.0",
     "@eslint-sukka/node": "6.12.0",
     "@eslint-sukka/react": "6.12.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.6.1",

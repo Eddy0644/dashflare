@@ -1,5 +1,4 @@
 export const onRequest: PagesFunction = ({ request }) => {
-  // const newReq = request.clone();
   const targetUrl = new URL(request.url);
 
   return cors(
@@ -8,7 +7,7 @@ export const onRequest: PagesFunction = ({ request }) => {
       targetUrl.protocol = 'https';
       targetUrl.hostname = 'api.cloudflare.com';
       targetUrl.port = '443';
-      targetUrl.pathname = targetUrl.pathname.replace(/^\/_sukka\/api/, '');
+      targetUrl.pathname = targetUrl.pathname.replace(/^\/_api/, '');
       const fetchRequest = new Request(targetUrl, request);
 
       return fetch(fetchRequest)
@@ -46,18 +45,10 @@ type StaticOrigin = string | RegExp | Array<string | RegExp>;
 
 interface CorsOptions {
   origin?: StaticOrigin
-  // methods?: string
-  // exposedHeaders?: string
-  // credentials?: boolean
-  // maxAge?: string
-  // optionsSuccessStatus?: number
 }
 
 const corsOptions: CorsOptions = {
   origin: '*'
-  // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE'
-  // maxAge: '7200',
-  // optionsSuccessStatus: 204
 };
 
 async function cors(
@@ -70,13 +61,11 @@ async function cors(
   const headers = new Headers();
 
   if (origin === '*') {
-    // Allow any origin
     headers.set('Access-Control-Allow-Origin', '*');
   } else {
     const reqOrigin = req.headers.get('Origin');
 
     if (typeof origin === 'string') {
-      // Fixed origin
       headers.set('Access-Control-Allow-Origin', origin);
     } else if (reqOrigin && isOriginAllowed(reqOrigin, origin)) {
       headers.set('Access-Control-Allow-Origin', reqOrigin);
@@ -84,19 +73,7 @@ async function cors(
     headers.append('Vary', 'Origin');
   }
 
-  // if (corsOptions.credentials) {
-  //   headers.set('Access-Control-Allow-Credentials', 'true');
-  // }
-
-  // if (corsOptions.exposedHeaders) {
-  //   headers.set('Access-Control-Expose-Headers', corsOptions.exposedHeaders);
-  // }
-
-  // Handle the preflight request
   if (req.method === 'OPTIONS') {
-    // if (corsOptions.methods) {
-    //   headers.set('Access-Control-Allow-Methods', corsOptions.methods);
-    // }
     headers.set('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
 
     const requestAllowedHeader = req.headers.get('Access-Control-Request-Headers');
@@ -105,16 +82,11 @@ async function cors(
       headers.set('Access-Control-Allow-Headers', requestAllowedHeader);
     }
 
-    // if (corsOptions.maxAge) {
-    //   headers.set('Access-Control-Max-Age', corsOptions.maxAge);
-    // }
     headers.set('Access-Control-Max-Age', '7200');
     headers.set('Content-Length', '0');
-    // return new Response(null, { status: corsOptions.optionsSuccessStatus, headers });
     return new Response(null, { status: 204, headers });
   }
 
-  // If we got here, it's a normal request
   return createResponse(headers);
 }
 

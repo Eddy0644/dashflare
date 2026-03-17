@@ -29,9 +29,10 @@ const targets = browserslist.loadConfig({ path: context });
 const config = {
   mode: isDevelopment ? 'development' : 'production',
   output: {
-    library: '_SKK',
+    path: path.join(__dirname, 'dist'),
+    library: '_DF',
     publicPath: '/', // Make it easy to configure CDN's cache-control
-    filename: isDevelopment ? '_sukka/static/[name].js' : '_sukka/static/[name]-[contenthash].js',
+    filename: isDevelopment ? '_/static/[name].js' : '_/static/[name]-[contenthash].js',
     crossOriginLoading: 'anonymous',
     hashFunction: 'xxhash64',
     hashDigestLength: 16,
@@ -64,9 +65,9 @@ const config = {
     },
     proxy: [
       {
-        context: ['/_sukka/api'],
+        context: ['/_api'],
         target: 'https://api.cloudflare.com',
-        pathRewrite: { '^/_sukka/api': '' },
+        pathRewrite: { '^/_api': '' },
         secure: false,
         changeOrigin: true
       }
@@ -78,7 +79,7 @@ const config = {
         test: /assets\//,
         type: 'asset/resource',
         generator: {
-          filename: isDevelopment ? '_sukka/static/[name][ext][query]' : '_sukka/static/[hash][ext][query]'
+          filename: isDevelopment ? '_/static/[name][ext][query]' : '_/static/[hash][ext][query]'
         }
       },
       {

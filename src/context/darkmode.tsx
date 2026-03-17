@@ -4,7 +4,7 @@ import { MantineProvider, ColorSchemeProvider, createEmotionCache } from '@manti
 import { useCallback } from 'react';
 
 const emotionCache = createEmotionCache({
-  key: 'sukka'
+  key: 'dashflare'
 });
 
 export function MantineProviderWithDarkMode({ children }: React.PropsWithChildren) {

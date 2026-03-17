@@ -1,0 +1,2 @@
+name = "dashflare2"
+pages_build_output_dir = "./dist"
