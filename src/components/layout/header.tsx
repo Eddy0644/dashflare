@@ -60,7 +60,7 @@ function HeaderContent({ isMatchLogin }: HeaderContentProps) {
     : 'https://dash.cloudflare.com/zones';
 
   const zeroTrustUrl = selectedAccountId
-    ? `https://one.dash.cloudflare.com/${selectedAccountId}/overview`
+    ? `https://dash.cloudflare.com/${selectedAccountId}/one/overview`
     : 'https://one.dash.cloudflare.com/';
 
   const workersUrl = selectedAccountId
